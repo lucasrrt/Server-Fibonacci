@@ -1,6 +1,7 @@
 package com.example.ricarte.serverfibonacci;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -19,87 +20,79 @@ import java.net.Socket;
  * Created by ricarte on 04/11/16.
  */
 
-public class AsyncTaskActivity extends Activity{
+public class AsyncTaskActivity extends AsyncTask<Void, Void, Void>{
 
-    public EditText sender;
-    public TextView receiver;
     private Socket CLISOCK;
+    public String sentMessage;
+    public String receivedMessage;
+    public String number;
+    public TextView received;
+    public EditText sender;
+    private Context context;
 
+
+    public AsyncTaskActivity(Context context,EditText sender, TextView received){
+        this.context = context;
+        this.sender = sender;
+        this.received = received;
+    }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        // because we implement OnClickListener we only have to pass "this"
-        // (much easier)
-        receiver = (TextView) findViewById(R.id.receiver);
-
-        sender = (EditText) findViewById(R.id.sender);
-
-
+    protected void onPreExecute() {
+        sentMessage = sender.getText().toString() + "\n";
     }
 
-    private class LongOperation extends AsyncTask<String, Void, String> {
+    @Override
+    protected Void doInBackground(Void... params) {
+        try {
+            CLISOCK = new Socket("192.168.25.126", 3334);
 
-        @Override
-        protected String doInBackground(String... params) {
-            connection();
-            return "Executed";
+            //Enviando mensagem ao servidor
+            OutputStream os = CLISOCK.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os);
+            BufferedWriter bw = new BufferedWriter(osw);
+
+            bw.write(sentMessage);
+            bw.flush();
+
+            System.out.println("Mensagem enviada: "+sentMessage);
+
+            //Recebendo a mensagem do servidor
+            InputStream is = CLISOCK.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+
+            receivedMessage = br.readLine();
+            System.out.println("Mensagem recebida: "+receivedMessage);
+        }catch(Exception e){
+            e.printStackTrace();
+            System.out.println("Erro 3: "+e.toString());
+            //Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
         }
-
-        @Override
-        protected void onPostExecute(String result) {
-            TextView txt = (TextView) findViewById(R.id.receiver);
-            txt.setText("Executed");
-        }
-
-        @Override
-        protected void onPreExecute() {}
-
-        @Override
-        protected void onProgressUpdate(Void... values) {}
-
-        public void connection(){
-            try {
-                CLISOCK = new Socket("192.168.0.23", 3334);
-
-                //Enviando mensagem ao servidor
-                OutputStream os = CLISOCK.getOutputStream();
-                OutputStreamWriter osw = new OutputStreamWriter(os);
-                BufferedWriter bw = new BufferedWriter(osw);
-
-//                    Toast.makeText(MainActivity.this, "Mensagem Enviada!!", Toast.LENGTH_SHORT).show();
-
-                String number = sender.getText().toString();
-
-                String MESSAGE = number + "\n";
-
-                bw.write(MESSAGE);
-                bw.flush();
-
-
-                //Recebendo a mensagem do servidor
-                InputStream is = CLISOCK.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String receivedMessage = br.readLine();
-                receiver.setText(receivedMessage);
-            }catch(Exception e){
+        finally
+        {
+            //Closing the socket
+            try
+            {
+                CLISOCK.close();
+            }
+            catch(Exception e)
+            {
                 e.printStackTrace();
             }
-            finally
-            {
-                //Closing the socket
-                try
-                {
-                    CLISOCK.close();
-                }
-                catch(Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
         }
+        return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(Void... params) {
 
     }
+
+    @Override
+    protected void onPostExecute(Void params) {
+        received.setText(receivedMessage);
+
+    }
+
 }
