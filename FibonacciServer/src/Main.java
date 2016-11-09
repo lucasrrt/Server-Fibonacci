@@ -22,12 +22,6 @@ public class Main {
 			ServerSocket SRVSOCK = new ServerSocket(3334);
 			System.out.println("Servidor iniciado na porta "+SRVSOCK.getLocalPort());
 			
-			InetAddress inet = SRVSOCK.getInetAddress();
-			System.out.println("HostAddress="+inet.getHostAddress());
-			System.out.println("HostName="+inet.getHostName());
-			
-			System.out.println("Informações extras: "+SRVSOCK.toString());
-			
 			System.out.println("Esperando conexão...");
 			
 			CLISOCK = SRVSOCK.accept();
@@ -42,28 +36,27 @@ public class Main {
             System.out.println("Mensagem recebida: "+messageReceived);
             
 			String returnMessage;
-			
 					
-			 try
-             {
-                 int number = Integer.parseInt(messageReceived);
-                 int returnValue = Fibonacci(number);
-                 returnMessage = String.valueOf(returnValue) + "\n";
-             }
-             catch(NumberFormatException e)
-             {
-                 //Input was not a number. Sending proper message back to client.
-                 returnMessage = "Numero ou expressão inválido!\n";
-             }
+			try
+			{
+				int number = Integer.parseInt(messageReceived);
+				int returnValue = Fibonacci(number);
+				returnMessage = String.valueOf(returnValue) + "\n";
+            }
+			catch(NumberFormatException e)
+			{
+				//Mensagem enviada pelo cliente é inválida
+				returnMessage = "Numero ou expressão inválido!\n";
+			}
 			 
 			 //Enviando resposta ao cliente
-			 OutputStream os = CLISOCK.getOutputStream();
-             OutputStreamWriter osw = new OutputStreamWriter(os);
-             BufferedWriter bw = new BufferedWriter(osw);
-             bw.write(returnMessage);
-             
-             System.out.println("Número enviado ao cliente: "+returnMessage);
-             bw.flush();			
+			OutputStream os = CLISOCK.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			BufferedWriter bw = new BufferedWriter(osw);
+			bw.write(returnMessage);
+			
+			System.out.println("Número enviado ao cliente: "+returnMessage);
+			bw.flush();			
 			
 			SRVSOCK.close();
 		} catch(IOException e){
@@ -82,7 +75,7 @@ public class Main {
 	}
 	
 	public static int Fibonacci(int n){
-		if(n == 1 || n == 0){
+		if(n == 1 || n == 2){
 			return 1;
 		}else{
 			return Fibonacci(n-1) + Fibonacci(n-2);

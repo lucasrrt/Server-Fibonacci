@@ -25,16 +25,13 @@ public class AsyncTaskActivity extends AsyncTask<Void, Void, Void>{
     private Socket CLISOCK;
     public String sentMessage;
     public String receivedMessage;
-    public String number;
-    public TextView received;
+    public TextView receiver;
     public EditText sender;
-    private Context context;
 
 
-    public AsyncTaskActivity(Context context,EditText sender, TextView received){
-        this.context = context;
+    public AsyncTaskActivity(EditText sender, TextView receiver){
         this.sender = sender;
-        this.received = received;
+        this.receiver = receiver;
     }
 
     @Override
@@ -91,7 +88,7 @@ public class AsyncTaskActivity extends AsyncTask<Void, Void, Void>{
 
     @Override
     protected void onPostExecute(Void params) {
-        received.setText(receivedMessage);
+        receiver.setText(receivedMessage);
 
     }
 
